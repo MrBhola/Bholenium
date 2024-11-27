@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "Bholenium",
+    "version": "1.0",
+    "description": "Records user interactions",
+    "background": {
+        "service_worker": "background.js"
+    },
+    "permissions": ["windows", "tabs", "activeTab", "scripting"],
+    "host_permissions": ["<all_urls>"],
+    "action": {
+        "default_title": "Open Main Page",
+        "default_icon": {
+            "16": "RP.png",
+            "48": "RP.png",
+            "128": "RP.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"],
+            "run_at": "document_end"
+        }
+    ]
+}
