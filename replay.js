@@ -4,7 +4,12 @@ chrome.runtime.onMessage.addListener((message) => {
 
         actions.forEach((action, index) => {
             setTimeout(() => {
-                const element = document.querySelector(action.selector);
+                let element = null
+                if(action.selector.type !== "xpath") {
+                     element = document.querySelector(action.selector.target);
+                } else {
+                     element = getElementByXPath(action.selector.target);
+                }
 
                 if (element) {
                     if (action.action === "Click") {
@@ -25,3 +30,12 @@ chrome.runtime.onMessage.addListener((message) => {
         });
     }
 });
+function getElementByXPath(xpath) {
+    return document.evaluate(
+        xpath,
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+    ).singleNodeValue;
+}

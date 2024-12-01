@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Function to log interactions to the UI and store them
     function logInteraction(message) {
         const li = document.createElement("li");
-        li.textContent = `Action: ${message.action}, Element: ${message.selector}, Value: ${message.value || "N/A"}`;
+        li.textContent = `Action: ${message.action}, Target: ${message.selector.target}, Target Type: ${message.selector.type} Value: ${message.value || "N/A"}`;
         interactionList.appendChild(li);
 
         // Store the recorded action
