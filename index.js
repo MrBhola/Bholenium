@@ -1,7 +1,10 @@
+import { openDB, saveTest, getSavedList, deleteTest } from './database.js'
 document.addEventListener("DOMContentLoaded", () => {
     const urlInput = document.getElementById("urlInput");
+    const titleInput = document.getElementById("titleInput");
     const recordButton = document.getElementById("recordButton");
     const playButton = document.getElementById("playButton");
+    const saveButton = document.getElementById("saveButton");
     const interactionList = document.getElementById("interactionList");
 
     let tabIdToRecord = null;
@@ -16,6 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Store the recorded action
         recordedActions.push(message);
         playButton.disabled = false; // Enable the play button once actions are recorded
+        saveButton.disabled = false;
     }
 
     // Format URL
@@ -39,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 recordedActions = []; // Clear previous recordings
                 interactionList.innerHTML = ""; // Clear the interaction list
                 playButton.disabled = true; // Disable play until new actions are recorded
+                saveButton.disabled = true; // Disable save button until new interaction recorded
             });
         } else {
             alert("Please enter a valid URL.");
@@ -58,31 +63,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const url = formatUrl(urlInput.value);
         if (url) {
-            chrome.tabs.create({ url }, (tab) => {
-                const replayTabId = tab.id;
-                console.log("Replay tabId", replayTabId, tab);
-
-                // Replay actions after the new tab loads
-                chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
-                    if (tabId === replayTabId && info.status === "complete") {
-                        chrome.tabs.onUpdated.removeListener(listener);
-
-                        // Inject and send actions for replay
-                        chrome.scripting.executeScript(
-                            {
-                                target: { tabId: replayTabId },
-                                files: ["replay.js"],
-                            },
-                            () => {
-                                chrome.tabs.sendMessage(replayTabId, {
-                                    type: "replay",
-                                    actions: recordedActions,
-                                });
-                            }
-                        );
-                    }
-                });
-            });
+            replay(url, recordedActions)
         }
     });
+    saveButton.addEventListener("click", () => {
+
+        const url = formatUrl(urlInput.value);
+        const title = titleInput.value;
+
+        if(url && title && recordedActions.length) {
+            console.log("save is clicked")
+            saveTest( url,title, recordedActions)
+        } else {
+            alert("Please enter Url, Title and record first")
+        }
+    })
+
+    function replay(message, commands) {
+        chrome.tabs.create({ url }, (tab) => {
+            const replayTabId = tab.id;
+            console.log("Replay tabId", replayTabId, tab);
+
+            // Replay actions after the new tab loads
+            chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+                if (tabId === replayTabId && info.status === "complete") {
+                    chrome.tabs.onUpdated.removeListener(listener);
+
+                    // Inject and send actions for replay
+                    chrome.scripting.executeScript(
+                        {
+                            target: { tabId: replayTabId },
+                            files: ["replay.js"],
+                        },
+                        () => {
+                            chrome.tabs.sendMessage(replayTabId, {
+                                type: "replay",
+                                actions: commands,
+                            });
+                        }
+                    );
+                }
+            });
+        });
+    }
 });

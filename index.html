@@ -7,10 +7,23 @@
 </head>
 <body>
 <h1>Welcome to the Extension!</h1>
-<input type="text" id="urlInput" placeholder="Enter URL" />
-<button id="recordButton">Open and Record</button>
-<button id="playButton" disabled>Play</button>
+<div style="display: flex; flex-direction: row">
+    <div style="width: 200px; border-right: gray 2px solid; margin-right: 4px">
+        <h3>Saved test</h3>
+        <hr>
+        <ul id="savedTestList" style="">
+        
+        </ul>
+    </div>
+    <div>
+        <input type="text" id="urlInput" placeholder="Enter URL" />
+        <input type="text" id="titleInput" placeholder="Enter test title" >
+        <button id="recordButton">Open and Record</button>
+        <button id="playButton" disabled>Play</button>
+        <button id="saveButton" disabled>Save</button>
+    </div>
+</div>
 <ul id="interactionList"></ul>
-<script src="index.js"></script>
+<script type="module" src="index.js"></script>
 </body>
 </html>
