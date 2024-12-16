@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let tabIdToRecord = null;
     let recordedActions = []; // Array to store recorded actions
 
+    //load list of saved test cases
+    getSavedList()
     // Function to log interactions to the UI and store them
     function logInteraction(message) {
         const li = document.createElement("li");

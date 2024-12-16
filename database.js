@@ -33,25 +33,23 @@ export const getSavedList = () => {
             const transaction = db.transaction([savedTestTable], 'readonly');
             const objectStore = transaction.objectStore(savedTestTable);
 
+            //clear the list
+            listElement.innerHTML = "";
             objectStore.openCursor().onsuccess = (event) => {
                 const cursor = event.target.result;
                 if (cursor) {
-                    const note = cursor.value;
+                    const data = cursor.value;
                     const noteDiv = document.createElement('div');
                     noteDiv.className = 'note';
 
                     const noteTitle = document.createElement('h3');
-                    noteTitle.textContent = note.title;
+                    noteTitle.textContent = data.title;
                     noteDiv.appendChild(noteTitle);
-
-                    const noteDescription = document.createElement('p');
-                    noteDescription.textContent = note.description;
-                    listElement.appendChild(noteDescription);
 
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Delete';
                     deleteButton.addEventListener('click', () => {
-                        deleteTest(note.id);
+                        deleteTest(data.id);
                     });
                     listElement.appendChild(deleteButton);
 
@@ -84,7 +82,7 @@ export const saveTest = (url, title, command) => {
        })
 };
 
-// Delete a note from IndexedDB
+// Delete a test from IndexedDB
 export const deleteTest = (id) => {
     const transaction = db.transaction([savedTestTable], 'readwrite');
     const objectStore = transaction.objectStore(savedTestTable);
@@ -95,6 +93,6 @@ export const deleteTest = (id) => {
     };
 
     request.onerror = () => {
-        console.error('Error deleting note');
+        console.error('Error deleting test item');
     };
 };
