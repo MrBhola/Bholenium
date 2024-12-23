@@ -29,14 +29,14 @@ function getXPath(element) {
 }
 
 
-// Send interaction logs to the background
+// Send interaction logs to the interactionStore  "chrome.runtime.onMessage."
 function sendInteractionLog(action, element, value) {
     const { target, type } = getUniqueSelector(element);
     chrome.runtime.sendMessage({
         type: "interaction",
         action,
         selector: { target, type },
-        value: value || null,
+        value: value || null,  // used for user inputs
     });
 }
 
