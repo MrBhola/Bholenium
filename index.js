@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     })
 
-    function replay(message, commands) {
+    function replay(url, commands) {
         chrome.tabs.create({ url }, (tab) => {
             const replayTabId = tab.id;
             console.log("Replay tabId", replayTabId, tab);
