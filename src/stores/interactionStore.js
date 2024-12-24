@@ -1,5 +1,6 @@
 import { defineStore } from "pinia"
 import { computed, ref } from "vue"
+import  { postFixFileName } from "./../helper.js"
 
 const DBName = "BholeniumDB";
 const tableName = "bholenium_table";
@@ -21,7 +22,7 @@ const openDatabase = () => {
     });
 };
 
-export const useInteractionStore = defineStore("interactionStore", () => {
+export const useInteractionStore = defineStore("interaction-store", () => {
     const interactions = ref({});
     const selectedInteractionId = ref(null)
     const url = ref("")
@@ -205,6 +206,115 @@ export const useInteractionStore = defineStore("interactionStore", () => {
         });
     }
 
+    // export actions
+    const exportAllData = async () => {
+        try {
+            const db = await openDatabase();
+            const transaction = db.transaction(tableName, "readonly");
+            const store = transaction.objectStore(tableName);
+
+            const allData = store.getAll();
+
+            allData.onsuccess = (event) => {
+                const data = event.target.result;
+
+                const jsonData = JSON.stringify(data, null, 2); // Convert data to JSON
+                const blob = new Blob([jsonData], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `Bholenium_export_${postFixFileName()}.json`;
+                a.click();
+            };
+
+            allData.onerror = (event) => {
+                console.error("Failed to export data:", event.target.error);
+            };
+        } catch (error) {
+            console.error("Error exporting data:", error);
+        }
+    };
+
+    // bulk export
+    const exportSelectedInteractions = async (ids, title = "") => {
+        try {
+            const db = await openDatabase();
+            const transaction = db.transaction(tableName, "readonly");
+            const store = transaction.objectStore(tableName);
+
+            const results = [];
+
+            // Create a promise that resolves once all the data is fetched
+            const fetchPromises = ids.map(id => {
+                return new Promise((resolve, reject) => {
+                    const request = store.get(id);
+
+                    request.onsuccess = (event) => {
+                        const data = event.target.result;
+                        if (data) {
+                            results.push(data);
+                        }
+                        resolve();
+                    };
+
+                    request.onerror = (event) => {
+                        reject(`Failed to fetch data for ID ${id}: ${event.target.error}`);
+                    };
+                });
+            });
+
+            // Wait for all promises to resolve
+            await Promise.all(fetchPromises);
+
+            // Convert the results to JSON and create a downloadable file
+            const jsonData = JSON.stringify(results, null, 2);
+            const blob = new Blob([jsonData], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+
+            a.href = url;
+            a.download = `${title}_bholenium_${postFixFileName()}.json`;
+            a.click();
+
+        } catch (error) {
+            console.error("Error exporting data:", error);
+        }
+    };
+
+    // import data action
+    const importData = async (file) => {
+        try {
+            const fileContent = await file.text(); // Read file content
+            const jsonData = JSON.parse(fileContent); // Parse JSON
+
+            const db = await openDatabase();
+            const transaction = db.transaction(tableName, "readwrite");
+            const store = transaction.objectStore(tableName);
+
+            jsonData.forEach((item) => {
+                const { id, ...dataWithoutId } = item; // Remove `id` field
+                store.add(dataWithoutId); // Add to store
+            });
+
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = () => {
+                    getInteractionList();
+                    resolve("success");
+                };
+
+                transaction.onerror = (event) => {
+                    console.error("Failed to import data:", event.target.error);
+                    reject(new Error("Failed to import data"));
+                };
+            });
+        } catch (error) {
+            console.error("Error importing data:", error);
+            throw error;
+        }
+    };
+
 
     return {
         interactions,
@@ -218,5 +328,8 @@ export const useInteractionStore = defineStore("interactionStore", () => {
         deleteInteraction,
         loadInteraction,
         addInteraction,
+        exportAllData,
+        exportSelectedInteractions,
+        importData,
     };
 });

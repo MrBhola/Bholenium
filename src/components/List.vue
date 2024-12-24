@@ -6,6 +6,7 @@
                 <li v-for="item in store.interactions" :key="item.id">
                     <p @click="store.loadInteraction(item.id)" >{{ item.title }}</p>
                     <button @click="store.deleteInteraction(item.id)">Delete</button>
+                    <button @click="store.exportSelectedInteractions([item.id], item.title)" >export</button>
                 </li>
             </ul>
         </div>
