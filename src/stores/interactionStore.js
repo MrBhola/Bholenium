@@ -331,5 +331,6 @@ export const useInteractionStore = defineStore("interaction-store", () => {
         exportAllData,
         exportSelectedInteractions,
         importData,
+        selectedInteractionId,
     };
 });
