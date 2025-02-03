@@ -150,6 +150,12 @@ export const useInteractionStore = defineStore("interaction-store", () => {
                     tabIdToRecord.value = tab.id; // Save the tab ID for recording
                     recordedActions.value = []; // Clear previous recordings
                 });
+                //  listens for any interaction message and updates the recordedActions value
+                chrome.runtime.onMessage.addListener((message, sender) => {
+                    if (sender.tab.id === tabIdToRecord.value && message.type === "interaction") {
+                        recordedActions.value.push(message);
+                    }
+                })
             } else {
                 alert("Please enter a valid URL.");
             }
@@ -163,14 +169,6 @@ export const useInteractionStore = defineStore("interaction-store", () => {
             return null;
         }
     }
-
-    //  listens for any interaction message and updates the recordedActions value
-    chrome.runtime.onMessage.addListener((message, sender) => {
-        if (sender.tab.id === tabIdToRecord.value && message.type === "interaction") {
-            recordedActions.value.push(message);
-        }
-    })
-
     const handlePlay = () => {
             if (!recordedActions.value.length) return;
 
@@ -188,19 +186,22 @@ export const useInteractionStore = defineStore("interaction-store", () => {
                 if (tabId === replayTabId && info.status === "complete") {
                     chrome.tabs.onUpdated.removeListener(listener);
 
-                    // Inject and send actions for replay
-                    chrome.scripting.executeScript(
-                        {
-                            target: { tabId: replayTabId },
-                            files: ["replay.js"],
-                        },
-                        () => {
-                            chrome.tabs.sendMessage(replayTabId, {
-                                type: "replay",
-                                actions: commands,
-                            });
-                        }
-                    );
+                    // Add a 2-second delay before executing the commands
+                    setTimeout(() => {
+                        // Inject and send actions for replay
+                        chrome.scripting.executeScript(
+                            {
+                                target: { tabId: replayTabId },
+                                files: ["replay.js"],
+                            },
+                            () => {
+                                chrome.tabs.sendMessage(replayTabId, {
+                                    type: "replay",
+                                    actions: commands,
+                                });
+                            }
+                        );
+                    }, 2000); // 2-second delay
                 }
             });
         });
